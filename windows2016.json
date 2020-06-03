@@ -1,0 +1,55 @@
+{
+  "builders": [
+    {
+      "type": "amazon-ebs",
+      "region": "us-east-1",
+      "access_key": "{{user `AWS_ACCESS_KEY_ID`}}",
+      "secret_key": "{{user `AWS_SECRET_ACCESS_KEY`}}",
+      "token": "{{user `AWS_SECURITY_TOKEN`}}",
+      "source_ami": "ami-0cc5ea3dde5301489",
+      "instance_type": "t2.large",
+      "subnet_id": "subnet-06f9b8eb5aa473f7a",
+      "ami_name": "test-windows2016-may2020",
+      "user_data_file": "./SetUpWinRM.ps1",
+      "communicator": "winrm",
+      "winrm_username": "Administrator",
+      "ami_regions": [
+          "us-east-1"
+        ],
+      "run_tags": {
+        "OSType": "WINDOWS-2016_R2"
+      },
+      "tags": {
+        "OSType": "WINDOWS2016_R2"
+      },
+    "encrypt_boot": true,
+    "region_kms_key_ids": {
+      "us-east-1": "alias/ss-cmk-virginia"
+    },
+    "launch_block_device_mappings": [
+      {
+        "device_name": "/dev/sda1",
+        "volume_size": 30,
+        "volume_type": "gp2",
+        "delete_on_termination": true
+      }
+    ],
+    "winrm_use_ssl": true,
+    "winrm_insecure": true
+    }
+  ],
+  "provisioners": [
+    {
+      "type": "windows-restart",
+      "restart_check_command": "powershell -command \"& {Write-Output 'restarted.'}\""
+      },
+    {
+      "type": "powershell",
+      "inline":[
+            "C:\\ProgramData\\Amazon\\EC2-Windows\\Launch\\Scripts\\SendWindowsIsReady.ps1 -Schedule",
+            "C:\\ProgramData\\Amazon\\EC2-Windows\\Launch\\Scripts\\InitializeInstance.ps1 -Schedule",
+            "C:\\ProgramData\\Amazon\\EC2-Windows\\Launch\\Scripts\\SysprepInstance.ps1 -NoShutdown"
+      ]
+    }
+  ]
+}
